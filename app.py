@@ -1,10 +1,15 @@
 from flask import Flask, request, jsonify
+from database import db
+from models.user import User
+from models.diets import Diets
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+db.init_app(app)
 
 user = []
 diets = []
-diets_user = []
 
 # ROTAS DE DIETAS
 
@@ -12,7 +17,16 @@ diets_user = []
 @app.route('/diet', methods=['POST'])
 def create_diet():
     data = request.json
-    diets.append(data)
+    id = data.get("id")
+    name = data.get("name")
+    description = data.get("description")
+    date_hour = data.get("Date/Hour")
+    diet = data.get("diet")
+    id_user = data.get("id_user")
+    diet = Diets(id=id, name=name, description=description,
+                 date_hour=date_hour, diet=diet, id_user=id_user)
+    db.session.add(diet)
+    db.session.commit()
     return jsonify({"message": "Dieta cadastrada com sucesso"})
 
 
@@ -31,12 +45,10 @@ def update_diet(id_diet):
 
 @app.route('/diet/<int:id_user>', methods=['GET'])
 def get_diet_user(id_user):
+    diets_user = []
     for d in diets:
         if d['id_user'] == id_user:
             diets_user.append(d)
-        else:
-            diets_user.clear()
-            continue
     if diets_user:
         output = {"diets": diets_user}
         return jsonify(output)
