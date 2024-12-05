@@ -8,8 +8,6 @@ app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 db.init_app(app)
 
-user = []
-diets = []
 
 # ROTAS DE DIETAS
 
@@ -89,6 +87,34 @@ def delete_diet_user(id_diet, id_user):
             db.session.commit()
             return jsonify({"message": "Dieta deletada com sucesso"})
     return jsonify({"message": "Dieta não encontrada"}), 404
+
+# ROTAS DE USUARIO
+
+
+@app.route('/user', methods=['POST'])
+def create_user():
+    data = request.json
+    if data:
+        id = data.get("id")
+        name = data.get("name")
+        password = data.get("password")
+        user = User(id=id, name=name, password=password)
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({"message": "Usuário cadastrado com sucesso"})
+    return jsonify({"message": "Dados invalidos para cadastro"}), 400
+
+
+@app.route('/user/<int:id_user>', methods=['POST'])
+def update_user(id_user):
+    user = db.session.query(User).filter(User.id == id_user).first()
+    data = request.json
+    if user and data:
+        user.password = data.get("password")
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({"message": "Usuário atualizado com sucesso"})
+    return jsonify({"message": "Dados invalidos"}), 400
 
 
 if __name__ == '__main__':
