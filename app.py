@@ -30,30 +30,65 @@ def create_diet():
     return jsonify({"message": "Dieta cadastrada com sucesso"})
 
 
-@app.route('/diet/<int:id_diet>', methods=['PUT'])
-def update_diet(id_diet):
+@app.route('/diet/<int:id_diet>/<int:id_user>', methods=['PUT'])
+def update_diet_user(id_diet, id_user):
+    diets = db.session.query(Diets).filter(Diets.id_user == id_user).all()
     data = request.json
     for d in diets:
-        if d['id'] == id_diet:
-            d['Name'] = data.get("name")
-            d['description'] = data.get("description")
-            d['Date/Hour'] = data.get("Date/Hour")
-            d['Diet'] = data.get("diet")
+        if d.id == id_diet:
+            d.name = data.get("name")
+            d.description = data.get("description")
+            d.date_hour = data.get("Date/Hour")
+            d.diet = data.get("diet")
+            db.session.commit()
             return jsonify({"message": "Dieta atualizada com sucesso"})
-    return jsonify({"message": "Dieta nao encontrada"}), 404
+
+    return jsonify({"message": "Dieta não encontrada"}), 404
 
 
 @app.route('/diet/<int:id_user>', methods=['GET'])
-def get_diet_user(id_user):
-    diets_user = []
+def read_diets_user(id_user):
+    diet_list = []
+    diets = db.session.query(Diets).filter(Diets.id_user == id_user).all()
+    if diets:
+        for d in diets:
+            output = {
+                "id": d.id,
+                "name": d.name,
+                "description": d.description,
+                "date_hour": d.date_hour,
+                "diet": d.diet
+            }
+            diet_list.append(output)
+        return jsonify(diet_list)
+    return jsonify({"message": "Nenhuma dieta encontrada"}), 404
+
+
+@app.route('/diet/<int:id_diet>/<int:id_user>', methods=['GET'])
+def read_diet_user(id_diet, id_user):  # ROTA PARA EXIBIR UMA UNICA DIETA
+    diets = db.session.query(Diets).filter(Diets.id_user == id_user).all()
     for d in diets:
-        if d['id_user'] == id_user:
-            diets_user.append(d)
-    if diets_user:
-        output = {"diets": diets_user}
-        return jsonify(output)
-    else:
-        return jsonify({"message": "Dieta nao encontrada"}), 404
+        if d.id == id_diet:
+            output = {
+                "id": d.id,
+                "name": d.name,
+                "description": d.description,
+                "date_hour": d.date_hour,
+                "diet": d.diet
+            }
+            return jsonify(output)
+    return jsonify({"message": "Dieta não encontrada"}), 404
+
+
+@app.route('/diet/<int:id_diet>/<int:id_user>', methods=['DELETE'])
+def delete_diet_user(id_diet, id_user):
+    diets = db.session.query(Diets).filter(Diets.id_user == id_user).all()
+    for d in diets:
+        if d.id == id_diet:
+            db.session.delete(d)
+            db.session.commit()
+            return jsonify({"message": "Dieta deletada com sucesso"})
+    return jsonify({"message": "Dieta não encontrada"}), 404
 
 
 if __name__ == '__main__':
