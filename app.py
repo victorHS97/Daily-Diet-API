@@ -25,6 +25,7 @@ def load_user(user_id):
 
 
 @app.route('/diet', methods=['POST'])
+@login_required
 def create_diet():
     data = request.json
     id = data.get("id")
@@ -32,7 +33,7 @@ def create_diet():
     description = data.get("description")
     date_hour = data.get("Date/Hour")
     diet = data.get("diet")
-    id_user = data.get("id_user")
+    id_user = current_user.id
     diet = Diets(id=id, name=name, description=description,
                  date_hour=date_hour, diet=diet, id_user=id_user)
     db.session.add(diet)
@@ -40,8 +41,10 @@ def create_diet():
     return jsonify({"message": "Dieta cadastrada com sucesso"})
 
 
-@app.route('/diet/<int:id_diet>/<int:id_user>', methods=['PUT'])
-def update_diet_user(id_diet, id_user):
+@app.route('/diet/<int:id_diet>', methods=['PUT'])
+@login_required
+def update_diet_user(id_diet):
+    id_user = current_user.id
     diets = db.session.query(Diets).filter(Diets.id_user == id_user).all()
     data = request.json
     for d in diets:
@@ -56,8 +59,10 @@ def update_diet_user(id_diet, id_user):
     return jsonify({"message": "Dieta não encontrada"}), 404
 
 
-@app.route('/diet/<int:id_user>', methods=['GET'])
-def read_diets_user(id_user):
+@app.route('/diet', methods=['GET'])
+@login_required
+def read_diets_user():
+    id_user = current_user.id
     diet_list = []
     diets = db.session.query(Diets).filter(Diets.id_user == id_user).all()
     if diets:
@@ -74,8 +79,10 @@ def read_diets_user(id_user):
     return jsonify({"message": "Nenhuma dieta encontrada"}), 404
 
 
-@app.route('/diet/<int:id_diet>/<int:id_user>', methods=['GET'])
-def read_diet_user(id_diet, id_user):  # ROTA PARA EXIBIR UMA UNICA DIETA
+@app.route('/diet/<int:id_diet>', methods=['GET'])
+@login_required
+def read_diet_user(id_diet):  # ROTA PARA EXIBIR UMA UNICA DIETA
+    id_user = current_user.id
     diets = db.session.query(Diets).filter(Diets.id_user == id_user).all()
     for d in diets:
         if d.id == id_diet:
@@ -90,8 +97,10 @@ def read_diet_user(id_diet, id_user):  # ROTA PARA EXIBIR UMA UNICA DIETA
     return jsonify({"message": "Dieta não encontrada"}), 404
 
 
-@app.route('/diet/<int:id_diet>/<int:id_user>', methods=['DELETE'])
-def delete_diet_user(id_diet, id_user):
+@app.route('/diet/<int:id_diet>', methods=['DELETE'])
+@login_required
+def delete_diet_user(id_diet):
+    id_user = current_user.id
     diets = db.session.query(Diets).filter(Diets.id_user == id_user).all()
     for d in diets:
         if d.id == id_diet:
@@ -117,8 +126,10 @@ def create_user():
     return jsonify({"message": "Dados invalidos para cadastro"}), 400
 
 
-@app.route('/user/<int:id_user>', methods=['PUT'])
-def update_user(id_user):
+@app.route('/user', methods=['PUT'])
+@login_required
+def update_user():
+    id_user = current_user.id
     user = db.session.query(User).filter(User.id == id_user).first()
     data = request.json
     if user and data:
